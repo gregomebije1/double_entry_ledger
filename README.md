@@ -65,3 +65,12 @@ $$\sum \text{Debits} - \sum \text{Credits} = 0$$
 -- Must evaluate to exactly 0 to pass audit verification
 SELECT SUM(amount) FROM journal_entries;
 ```
+
+# Useful commands
+
+docker compose up -d 
+docker compose down -v
+
+./mvnw test
+./mvnw spring-boot:run
+
