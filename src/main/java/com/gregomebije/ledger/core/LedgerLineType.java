@@ -1,4 +1,4 @@
-package com.gregomebije.ledger.enumtype;
+package com.gregomebije.ledger.core;
 
 
 public enum LedgerLineType {

@@ -6,9 +6,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.gregomebije.ledger.model.*;
-import com.gregomebije.ledger.enumtype.*;
-import com.gregomebije.ledger.exception.*;
+import com.gregomebije.ledger.core.*;
 
 class LedgerValidatorTest {
 
@@ -126,5 +124,15 @@ class LedgerValidatorTest {
         );
 
         assertDoesNotThrow(() -> validator.validate(lines));
+    }
+
+    @Test
+    void longOverflowShouldBeRejected() {
+        assertThrows(ArithmeticException.class, () ->
+                validator.validate(List.of(
+                        new LedgerLine("a", LedgerLineType.DEBIT, Long.MAX_VALUE),
+                        new LedgerLine("b", LedgerLineType.DEBIT, 1L),
+                        new LedgerLine("c", LedgerLineType.CREDIT, Long.MAX_VALUE)
+                )));
     }
 }

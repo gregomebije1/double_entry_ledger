@@ -1,4 +1,4 @@
-package com.gregomebije.ledger.model;
+package com.gregomebije.ledger.core;
 
 import java.time.LocalDateTime;
 
@@ -7,7 +7,7 @@ import org.hibernate.annotations.*;
 
 import lombok.*;
 
-import com.gregomebije.ledger.enumtype.LedgerLineType;
+import com.gregomebije.ledger.core.LedgerLineType;
 
 @Entity
 @Table(name = "ledger_lines")
@@ -24,14 +24,14 @@ public class LedgerLine {
     @Column(nullable = false, unique = true)
     private Long id;
     
-    private String description;
+    private String accountId;
 
     private LedgerLineType ledgerLineType;
 
     private long amount;
 
-    public LedgerLine(String description, LedgerLineType ledgerLineType, long amount) {
-        this.description = description;
+    public LedgerLine(String accountId, LedgerLineType ledgerLineType, long amount) {
+        this.accountId = accountId;
         this.ledgerLineType = ledgerLineType;
         this.amount = amount;
     }

@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.gregomebije.ledger.exception.*;
+import com.gregomebije.ledger.core.*;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -18,8 +18,8 @@ public class GlobalExceptionHandler {
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("message", ex.getMessage());
-        body.put("status", HttpStatus.NOT_FOUND.value());
+        body.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
 
-        return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
