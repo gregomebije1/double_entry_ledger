@@ -77,6 +77,8 @@ docker compose down -v
 ./mvnw clean test-compile
 
 ==== 
+
+```text
 To build a production-grade General Ledger in PostgreSQL, you must treat your database as an immutable write-only transaction log. In financial ledger engineering, balances are never overwritten using an UPDATE statement. Instead, a balance is an aggregate sum calculated over an unchanging history of balancing debits and credits.This schema implements a bulletproof Double-Entry Accounting Architecture using PostgreSQL-native triggers and constraints to guarantee that the absolute core rule of accounting—every transaction must balance exactly to zero—is enforced directly by the engine before a single byte hits the disk.Core Structural ArchitectureTo minimize data corruption, this schema separates transactions into two tables using a Header/Line pattern:ledger_transactions: Contains the structural header metadata (who, what, when, idempotency tracking).ledger_entries: Contains the actual monetary movements (the individual debit and credit distribution splits). ┌─────────────────────────────┐
  │    ledger_transactions      │
  ├─────────────────────────────┤
@@ -95,7 +97,10 @@ To build a production-grade General Ledger in PostgreSQL, you must treat your da
  │ account_id (FK)             │      (SUM(amount) = 0)
  │ amount (Minor unit integer) │
  └─────────────────────────────┘
-Complete Production PostgreSQL DDL Scriptsql-- ============================================================================
+Complete Production PostgreSQL DDL Scriptsql--
+```
+```sql
+============================================================================
 -- 1. BASE LAYER ENUMS & EXTENSIONS
 -- ============================================================================
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -221,7 +226,10 @@ CREATE TRIGGER trg_immutable_transactions
 BEFORE UPDATE OR DELETE ON ledger_transactions
 FOR EACH ROW
 EXECUTE FUNCTION protect_ledger_immutability();
-Use code with caution.How to insert a balanced transaction cleanlyBecause the trigger is configured as DEFERRABLE INITIALLY DEFERRED, PostgreSQL allows your application to insert individual entries one at a time. The database only checks the balance at the final step when you send a COMMIT statement.sqlBEGIN;
+/*
+Use code with caution.How to insert a balanced transaction cleanlyBecause the trigger is configured as DEFERRABLE INITIALLY DEFERRED, PostgreSQL allows your application to insert individual entries one at a time. The database only checks the balance at the final step when you send a COMMIT statement.
+*/
+BEGIN;
 
 -- 1. Create the Transaction Header with an Idempotency Correlation ID
 INSERT INTO ledger_transactions (id, description, correlation_id) 
@@ -251,9 +259,11 @@ COMMIT;
 -- ERROR: Ledger transaction fa4340d2-9705-4c07-ba71-fa58197bf4a0 is unbalanced. 
 -- Sum total is 100000 minor units (Must equal 0).
 Use code with caution.
-
+/*
 ======
-Calculating real-time account balances by scanning millions of rows using SUM(amount) will quickly degrade database performance as your transaction history grows.To solve this, production financial platforms use an asynchronously refreshed Materialized View acting as a high-performance cache layer, combined with a Snapshot Delta pattern to calculate real-time values instantly.Here is the complete production SQL architecture script to set up high-performance balance caching in PostgreSQL.1. The High-Performance Materialized View ScriptThis script builds a materialized view that snapshots account totals, paired with localized composite indexes designed for index-only scans.sql-- ============================================================================
+Calculating real-time account balances by scanning millions of rows using SUM(amount) will quickly degrade database performance as your transaction history grows.To solve this, production financial platforms use an asynchronously refreshed Materialized View acting as a high-performance cache layer, combined with a Snapshot Delta pattern to calculate real-time values instantly.Here is the complete production SQL architecture script to set up high-performance balance caching in PostgreSQL.1. The High-Performance Materialized View ScriptThis script builds a materialized view that snapshots account totals, paired with localized composite indexes designed for index-only scans.sql--
+*/
+============================================================================
 -- 1. DEFINE THE MATERIALIZED VIEW (THE BALANCE SNAPSHOT)
 -- ============================================================================
 CREATE MATERIALIZED VIEW mv_account_balances AS
@@ -278,7 +288,10 @@ ON mv_account_balances (account_id);
 -- Composite covering index to allow rapid balance extractions
 CREATE INDEX idx_mv_balances_lookup 
 ON mv_account_balances (account_id, snapshot_balance);
-Use code with caution.2. The Production "Real-Time Balance" Hybrid QueryWhile a materialized view is fast, it only reflects data up to the moment it was last refreshed. If a payment was made 1 second ago, a stale view won't see it.To achieve sub-millisecond real-time accuracy, the query below reads the fast snapshot balance and adds any new delta entries written after the snapshot timestamp. This allows you to inspect millions of historical lines instantly while maintaining real-time accuracy down to the millisecond.sqlCREATE OR REPLACE FUNCTION get_real_time_balance(p_account_id UUID)
+
+/*2. The Production "Real-Time Balance" Hybrid QueryWhile a materialized view is fast, it only reflects data up to the moment it was last refreshed. If a payment was made 1 second ago, a stale view won't see it.To achieve sub-millisecond real-time accuracy, the query below reads the fast snapshot balance and adds any new delta entries written after the snapshot timestamp. This allows you to inspect millions of historical lines instantly while maintaining real-time accuracy down to the millisecond.
+*/
+CREATE OR REPLACE FUNCTION get_real_time_balance(p_account_id UUID)
 RETURNS BIGINT AS $$
 DECLARE
     v_snapshot_balance BIGINT;
@@ -308,8 +321,11 @@ BEGIN
     RETURN v_snapshot_balance + v_delta_balance;
 END;
 $$ LANGUAGE plpgsql STABLE;
+/*
 Use code with caution.3. Automated Refresh OrchestrationTo keep the materialized view background cache fresh without slowing down your active web requests, you can refresh it concurrently. This means the view updates in the background without locking your tables or blocking user API reads.How to Refresh Concurrently (SQL Command)Run this command periodically via a background worker or cron utility (e.g., every 5 to 15 minutes):sqlREFRESH MATERIALIZED VIEW CONCURRENTLY mv_account_balances;
-Use code with caution.Automated Database-Level Trigger (Optional alternative for lower volume)If your ledger does not process hundreds of transactions per second, you can automate updates using a database trigger rule that refreshes every N transactions:sqlCREATE OR REPLACE FUNCTION schedule_ledger_refresh()
+Use code with caution.Automated Database-Level Trigger (Optional alternative for lower volume)If your ledger does not process hundreds of transactions per second, you can automate updates using a database trigger rule that refreshes every N transactions
+*/
+CREATE OR REPLACE FUNCTION schedule_ledger_refresh()
 RETURNS TRIGGER AS $$
 BEGIN
     -- For production high-volume, call this via pg_cron or Spring Boot @Scheduled instead
@@ -324,4 +340,4 @@ AFTER INSERT ON ledger_entries
 REFERENCING NEW TABLE AS new_entries
 FOR EACH STATEMENT
 EXECUTE FUNCTION schedule_ledger_refresh();
-Use code with caution.
+```
