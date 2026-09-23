@@ -79,7 +79,10 @@ docker compose down -v
 ==== 
 
 ```text
-To build a production-grade General Ledger in PostgreSQL, you must treat your database as an immutable write-only transaction log. In financial ledger engineering, balances are never overwritten using an UPDATE statement. Instead, a balance is an aggregate sum calculated over an unchanging history of balancing debits and credits.This schema implements a bulletproof Double-Entry Accounting Architecture using PostgreSQL-native triggers and constraints to guarantee that the absolute core rule of accounting—every transaction must balance exactly to zero—is enforced directly by the engine before a single byte hits the disk.Core Structural ArchitectureTo minimize data corruption, this schema separates transactions into two tables using a Header/Line pattern:ledger_transactions: Contains the structural header metadata (who, what, when, idempotency tracking).ledger_entries: Contains the actual monetary movements (the individual debit and credit distribution splits). ┌─────────────────────────────┐
+To build a production-grade General Ledger in PostgreSQL, you must treat your database as an immutable write-only transaction log. In financial ledger engineering, balances are never overwritten using an UPDATE statement. Instead, a balance is an aggregate sum calculated over an unchanging history of balancing debits and credits.This schema implements a bulletproof Double-Entry Accounting Architecture using PostgreSQL-native triggers and constraints to guarantee that the absolute core rule of accounting—every transaction must balance exactly to zero—is enforced directly by the engine before a single byte hits the disk.Core Structural ArchitectureTo minimize data corruption, this schema separates transactions into two tables using a Header/Line pattern:ledger_transactions: Contains the structural header metadata (who, what, when, idempotency tracking).ledger_entries: Contains the actual monetary movements (the individual debit and credit distribution splits).
+
+
+┌─────────────────────────────┐
  │    ledger_transactions      │
  ├─────────────────────────────┤
  │ id (PK)                     │
