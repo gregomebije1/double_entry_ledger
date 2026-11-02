@@ -234,12 +234,6 @@ curl -X POST "http://localhost:8080/api/v1/ledgers/accounts" \
      "currency": "USD"}'
 ```
 
-
-# curl -X GET "http://localhost:8080/api/auth/verify-otp/0b48c1b9-af16-4ab7-ac48-37387a5c6ab7/824354"
-
-
-Amounts in this example are expressed in minor units. The actual API contract and validation rules should be confirmed against the implementation.
-
 ## Testing and correctness
 
 The testing strategy described in this project focuses on:
