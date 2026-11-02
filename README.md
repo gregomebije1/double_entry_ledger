@@ -54,6 +54,7 @@ The API model includes tenant-scoped access to ledger accounts and transactions.
 Repeating a request with the same idempotency key and same payload returns the original result. Reusing that key with a different payload is rejected.
 
 ## Architecture 
+```
 REST API 
 Authentication . validation . idempotency key
       |
@@ -74,6 +75,7 @@ Constraints - row locks - atomic posting - immuatable journal
 Transactional Outbox
 Commited events -> Kafka or another message broker
 Notifications . projectsion .reconciliation consumers
+```
 
 ## Tech choices
 - Language and API: 	Java 21+  Spring Boot, Spring MVC
@@ -162,6 +164,7 @@ curl -X POST "http://localhost:8080/api/v1/ledgers/accounts" \
 
 
 ### Post a balanced transaction
+```
 curl -X POST "http://localhost:8080/api/v1/ledgers/transactions" \
 -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2huZG9lQG1hbmdpdGFsLmNvbSIsInRlbmFudF9pZCI6InRlbmFudC0xIiwiaWF0IjoxNzkzNjAxNzQ3LCJleHAiOjE3OTM2MDUzNDd9.QXacmoPJV7pE9BHLoqbTp8dhEuEG8CT5Uhn6mW3MO8g" \
 -H "Content-Type: application/json" \
@@ -182,10 +185,7 @@ curl -X POST "http://localhost:8080/api/v1/ledgers/transactions" \
   ],
   "idempotencyKey": "fund-alice-1"
 }'
-
-
-6e4faa68-1982-410c-a47e-f53224e1bb5c
-
+```
     
 ### Create ledger account for tenant-2
 ```
