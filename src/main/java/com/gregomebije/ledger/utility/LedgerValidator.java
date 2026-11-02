@@ -1,10 +1,13 @@
-package com.gregomebije.ledger.core;
+package com.gregomebije.ledger.utility;
 
 import java.util.List;
-import com.gregomebije.ledger.core.LedgerLine;
-import com.gregomebije.ledger.core.LedgerLineType;
-import com.gregomebije.ledger.core.UnbalancedLedgerException;
 
+import org.springframework.stereotype.Component;
+import com.gregomebije.ledger.dto.Models.LedgerLine;
+import com.gregomebije.ledger.dto.Models.LedgerLineType;
+import com.gregomebije.ledger.exception.UnbalancedLedgerException;
+
+@Component
 public class LedgerValidator {
     /**
      * Validates that the total sum of debits matches the total sum of credits.
@@ -21,22 +24,19 @@ public class LedgerValidator {
             throw new IllegalArgumentException("Ledger must contain at least one line");
 
         for (LedgerLine ledgerLine : ledgerLines) {
-            if (ledgerLine == null || ledgerLine.getAccountId() == null || ledgerLine.getAccountId().isBlank()) {
+            if (ledgerLine == null || ledgerLine.accountId() == null) {
                 throw new IllegalArgumentException("Account ID is required");
             }
-            if (ledgerLine.getAmount() <= 0)
+            if ((ledgerLine.debit() < 0) || (ledgerLine.credit() < 0))
                 throw new IllegalArgumentException("Amount must be positive");
             
-            if (ledgerLine.getAmount() > Long.MAX_VALUE || ledgerLine.getAmount() < Long.MIN_VALUE)
+            if ((ledgerLine.debit() > Long.MAX_VALUE || ledgerLine.debit() < Long.MIN_VALUE) ||
+               (ledgerLine.credit() > Long.MAX_VALUE || ledgerLine.credit() < Long.MIN_VALUE))
                 throw new IllegalArgumentException("Amount must be within Long.MAX_VALUE and Long.MIN_VALUE");
 
-            if (ledgerLine.getLedgerLineType() == LedgerLineType.DEBIT) {
-                debits = Math.addExact(debits, ledgerLine.getAmount()); //Prevents silent long overflows
-            } else if (ledgerLine.getLedgerLineType() == LedgerLineType.CREDIT) {
-                credits = Math.addExact(credits, ledgerLine.getAmount()); 
-            } else {
-                throw new IllegalArgumentException("Unsupported ledger type");
-            }
+            debits = Math.addExact(debits, ledgerLine.debit()); //Prevents silent long overflows
+            credits = Math.addExact(credits, ledgerLine.credit()); 
+            
         }
         if (debits != credits) {
             throw new UnbalancedLedgerException("Ledger is unbalanced: variance=" + (debits - credits));

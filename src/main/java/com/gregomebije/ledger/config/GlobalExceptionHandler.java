@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.gregomebije.ledger.core.*;
+import com.gregomebije.ledger.exception.*;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {

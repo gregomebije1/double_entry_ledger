@@ -1,4 +1,4 @@
-package com.gregomebije.ledger.core;
+package com.gregomebije.ledger.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
