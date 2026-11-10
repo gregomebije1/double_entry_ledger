@@ -279,26 +279,21 @@ This is a portfolio engineering project, not a claim of a certified or productio
 
 ## Commands
 
-# Useful commands
+- ./mvnw spring-boot:run
+- ./mvnw spring-boot:run -DskipTests
 
-docker compose up -d 
-docker compose down -v
-docker exec -it dev-postgres psql -U postgres
-\c double_entry_ledger
+- ./mvnw clean test-compile
 
-psql -h localhost -p 5432 -U postgres
+- ./mvnw test
+- ./mvnw test -Dtest='!LedgerSystemIntegrationTest'        # unit tests only, no Docker
+- ./mvnw test -Dtest=LedgerSystemIntegrationTest           # integration test only
 
 
-----
-./mvnw clean package -DskipTests
-----
+- docker compose up -d 
+- docker compose down -v
+- docker exec -it dev-postgres psql -U postgres
+- \c double_entry_ledger
 
-./mvnw spring-boot:run
-./mvnw spring-boot:run -DskipTests
+- psql -h localhost -p 5432 -U postgres
 
-./mvnw clean test-compile
-
-./mvnw test
-./mvnw test -Dtest='!LedgerSystemIntegrationTest'        # unit tests only, no Docker
-./mvnw test -Dtest=LedgerSystemIntegrationTest           # integration test only
 

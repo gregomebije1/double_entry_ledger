@@ -13,24 +13,12 @@ public final class Models {
      public enum AccountType { 
           ASSET, LIABILITY, EQUITY, REVENUE, EXPENSE;
           
-           /** ASSET/EXPENSE are debit-normal; everything else is credit-normal. */
+           /** ASSET/EXPENSE are debit; everything else is credit. */
           public boolean isDebitNormal() {
                return this == ASSET || this == EXPENSE;
           }
      }
 
-     /*
-    public record PostTransactionRequest(String narration, List<LedgerLine> lines) {}
-    public record CreateAccountRequest(String account_id, String currency) {}
-    
-    public record TenantRegistrationDto (  String tenantId,  String tenantName,  String adminEmail,  String adminPassword,  String firstName,  String lastName ) {}
-    public record LoginRequestDto (  String tenantId,  String email,  String password ) {}
-    public record AuthResponseDto (  String accessToken ) {}
-    public record CreateAccountDto (  String accountNumber,  String name,  String type,  String currency ) {}
-    public record CreateTransactionDto ( String description,  String idempotencyKey,  List<LedgerLine> lines ) {}
-    //public record TransactionLineDto (  UUID accountId,  Long amount ) {}
-    public record LedgerLine(UUID accountId, LedgerLineType ledgerLineType, long debit, long credit) {}
-    */
   
     public record LoginRequest (  String tenantId,  String email,  String password ) {}
     public record LoginResponse (  String accessToken ) {}
