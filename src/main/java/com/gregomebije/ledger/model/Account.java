@@ -7,6 +7,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import com.gregomebije.ledger.dto.Models.AccountType;
 
 @Entity
@@ -38,9 +41,10 @@ public class Account {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @Enumerated(EnumType.STRING) // Explicitly maps Java text names to Postgres Enum items
-    @Column(name = "type", nullable = false,  updatable = false, columnDefinition = "account_type")
-    private AccountType type; 
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "type", columnDefinition = "account_type")
+    private AccountType type;
 
     @Column(length = 3, nullable = false, updatable = false)
     private String currency;

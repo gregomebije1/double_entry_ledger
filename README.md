@@ -96,17 +96,27 @@ Notifications . projectsion .reconciliation consumers
 
 
 ## API examples
-### Register a Tenant/User-1
+### Register a User-1
 ```
 curl -X POST "http://localhost:8080/api/v1/onboarding/register" \
 -H "Content-Type: application/json" \
 -d '{
-"tenantId": "tenant-1",
-"tenantName": "Mangital ltd",
 "adminEmail": "johndoe@mangital.com",
 "adminPassword": "password",
 "firstName": "John",
 "lastName": "Doe"
+}'
+```
+
+
+### Register a Tenant/
+```
+curl -X POST "http://localhost:8080/api/v1/onboarding/tenant" \
+-H "Content-Type: application/json" \
+-d '{
+"tenantId": "tenant-1",
+"tenantName": "Mangital ltd",
+"email": "johndoe@mangital.com",
 }'
 ```
 
@@ -283,10 +293,12 @@ psql -h localhost -p 5432 -U postgres
 ./mvnw clean package -DskipTests
 ----
 
-./mvnw test
 ./mvnw spring-boot:run
 ./mvnw spring-boot:run -DskipTests
 
 ./mvnw clean test-compile
 
+./mvnw test
+./mvnw test -Dtest='!LedgerSystemIntegrationTest'        # unit tests only, no Docker
+./mvnw test -Dtest=LedgerSystemIntegrationTest           # integration test only
 
