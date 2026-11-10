@@ -24,10 +24,6 @@ public class User {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "tenant_id", nullable = false, updatable = false)
-    private Tenant tenant;
-
     @Column(nullable = false)
     private String email;
 

@@ -19,16 +19,22 @@ public class LedgerController {
     }
 
     // --- Unauthenticated routing ---
-    @PostMapping("/onboarding/register")
-    public ResponseEntity<String> registerTenant(@RequestBody TenantRegistrationDto dto) {
-        onboardingService.registerTenant(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Tenant organization enrolled successfully");    
+    @PostMapping("/onboarding/user")
+    public ResponseEntity<String> registerUser(@RequestBody CreateUserRequest request) {
+        onboardingService.registerUser(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body("User organization enrolled successfully");    
+    }
+
+    @PostMapping("/onboarding/tenant")
+    public ResponseEntity<String> registerTenant(@RequestBody CreateTenantRequest request) {
+        onboardingService.registerTenant(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body("Tenant added to user organization");    
     }
 
     @PostMapping("/onboarding/login")
-    public ResponseEntity<AuthResponseDto> login(@RequestBody LoginRequestDto dto) {
-        String token = onboardingService.login(dto);
-        AuthResponseDto response = new AuthResponseDto(token);
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+        String token = onboardingService.login(request);
+        LoginResponse response = new LoginResponse(token);
         return ResponseEntity.ok(response);
     }
 
@@ -36,25 +42,25 @@ public class LedgerController {
     @PostMapping("/ledgers/accounts")
     public ResponseEntity<String> createAccount(
             @RequestHeader(value = "Authorization", required = false) String authorization,
-            @RequestBody CreateAccountDto dto
+            @RequestBody CreateAccountRequest request
     ) {
         if (authorization == null || !authorization.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        String accountId = ledgerService.createAccount(dto);
+        String accountId = ledgerService.createAccount(request);
         return ResponseEntity.status(HttpStatus.CREATED).body("Account created: " + accountId);
     }
 
     @PostMapping("/ledgers/transactions")
     public ResponseEntity<String> postTransaction(
             @RequestHeader(value = "Authorization", required = false) String authorization,
-            @RequestBody CreateTransactionDto dto
+            @RequestBody CreateTransactionRequest request
     ) {
         if (authorization == null || !authorization.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        String txId = ledgerService.postTransaction(dto);
+        String txId = ledgerService.postTransaction(request);
         return ResponseEntity.status(HttpStatus.CREATED).body("Ledger entry balance block recorded successfully: " + txId);
     }
 

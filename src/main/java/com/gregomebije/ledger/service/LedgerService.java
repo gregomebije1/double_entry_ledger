@@ -30,7 +30,7 @@ public class LedgerService {
     }
 
     @Transactional
-    public String createAccount(CreateAccountDto dto) {
+    public String createAccount(CreateAccountRequest dto) {
         String currentTenant = TenantContext.getTenantId(); // Gather explicitly from request context container
 
         Tenant tenant = tenantRepository.findById(currentTenant).get();
@@ -48,7 +48,7 @@ public class LedgerService {
     }
 
     @Transactional
-    public String postTransaction(CreateTransactionDto dto) {
+    public String postTransaction(CreateTransactionRequest dto) {
         validator.validate(dto.lines());
         String currentTenant = TenantContext.getTenantId(); // Gather explicitly from request context container
         Tenant tenant = tenantRepository.findById(currentTenant).get();
@@ -86,7 +86,7 @@ public class LedgerService {
     }
 
     @Transactional
-    public String postTransactionAndFail(String tenantId, PostTransactionRequest request) {
+    public String postTransactionAndFail(String tenantId, CreateTransactionRequest request) {
         validator.validate(request.lines());
         throw new RuntimeException("Forced rollback for test");
     }

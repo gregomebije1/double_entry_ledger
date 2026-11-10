@@ -25,7 +25,6 @@ CREATE TABLE tenants (
 -- Users Table: Explicit individual human actors
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    tenant_id VARCHAR(64) NOT NULL REFERENCES tenants(id) ON DELETE RESTRICT,
     email VARCHAR(255) NOT NULL,
     password_hash VARCHAR(255) NOT NULL, -- Managed safely by your security framework
     first_name VARCHAR(128) NOT NULL,
@@ -35,9 +34,19 @@ CREATE TABLE users (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     -- Emails must be unique WITHIN their respective company boundaries
-    CONSTRAINT uq_users_tenant_email UNIQUE (tenant_id, email)
+    CONSTRAINT uq_users_email UNIQUE (email)
 );
 
+CREATE TABLE users_tenants (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id)  ON DELETE RESTRICT,
+    tenant_id VARCHAR(64) NOT NULL REFERENCES tenants(id) ON DELETE RESTRICT,
+    
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP, 
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP, 
+    
+    CONSTRAINT uq_users_tenants UNIQUE (user_id, tenant_id)
+);
 -- ============================================================================
 -- 3. CORE FINANCIAL LEDGER SCHEMAS AND TABLES
 -- ============================================================================
@@ -113,7 +122,7 @@ CREATE TABLE ledger_entries (
 -- ============================================================================
 
 -- Isolate user lookups by tenant context
-CREATE INDEX idx_users_tenant_lookup ON users (tenant_id);
+CREATE INDEX idx_users_tenant_lookup ON users_tenants (user_id, tenant_id);
 
 -- Leading with tenant_id to isolate financial statement compilation instantly
 CREATE INDEX idx_ledger_entries_tenant_account_date

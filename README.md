@@ -2,6 +2,9 @@
 
 A backend engineering project exploring how to enforce financial correctness at the data layer using **double-entry accounting, immutable journal entries, transaction boundaries, and tenant isolation**.
 
+- How does the database reject an unbalanced transaction? What happens if a transaction fails partway through?
+
+
 ## Problem
 
 Financial systems must preserve a consistent record of every movement of value. A partial write, unbalanced transaction, duplicate request, or overwritten historical entry can compromise balances and make reconciliation difficult.

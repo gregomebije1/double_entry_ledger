@@ -8,6 +8,7 @@ import java.util.UUID;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
-    // Explicitly scope authentication lookups to avoid cross-tenant authentication leaks
-    Optional<User> findByTenantIdAndEmail(String tenantId, String email);
+    boolean existsByEmail(String email);
+
+    Optional<User> findByEmail(String email);
 }
