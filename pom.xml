@@ -19,7 +19,6 @@
 	<properties>
 		<java.version>21</java.version>
 		<lombok.version>1.18.36</lombok.version>
-		<!-- testcontainers.version override removed: Spring Boot 4.1.1 manages Testcontainers 2.x -->
 	</properties>
 
 	<dependencies>
@@ -118,7 +117,7 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- Testcontainers 2.x: artifacts were renamed with a "testcontainers-" prefix -->
+		<!-- Testcontainers 2.x: artifacts  -->
 		<dependency>
 			<groupId>org.testcontainers</groupId>
 			<artifactId>testcontainers-junit-jupiter</artifactId>

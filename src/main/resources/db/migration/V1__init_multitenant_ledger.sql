@@ -89,6 +89,7 @@ CREATE TABLE ledger_entries (
     transaction_id UUID NOT NULL REFERENCES ledger_transactions(id) ON DELETE RESTRICT,
     account_id UUID NOT NULL REFERENCES accounts(id) ON DELETE RESTRICT,
 
+    sub_ref UUID,                                         -- wallet id or merchant id
     -- MINOR UNITS REQUIREMENT: Stored as a signed integer (cents/pence). 
     -- Zero value is strictly rejected.
     debit  BIGINT NOT NULL DEFAULT 0 CHECK (debit  >= 0),
@@ -124,13 +125,13 @@ CREATE TABLE ledger_entries (
 -- Isolate user lookups by tenant context
 CREATE INDEX idx_users_tenant_lookup ON users_tenants (user_id, tenant_id);
 
--- Leading with tenant_id to isolate financial statement compilation instantly
+-- Leading with sub_ref to isolate financial statement compilation instantly
 CREATE INDEX idx_ledger_entries_tenant_account_date
-ON ledger_entries (tenant_id, account_id, created_at DESC);
+ON ledger_entries (account_id, sub_ref, created_at DESC);
 
 -- Speeds up transaction history inspections while respecting isolation
 CREATE INDEX idx_ledger_entries_tenant_transaction_id
-ON ledger_entries (tenant_id, transaction_id);
+ON ledger_entries (transaction_id, sub_ref);
 
 -- ============================================================================
 -- 5. INTEGRITY RULES & TRIGGER DEPENDENCIES (TENANT AWARE)

@@ -23,9 +23,9 @@ import java.util.UUID;
     name = "ledger_entries",
     indexes = {
         @Index(name = "idx_ledger_entries_tenant_account_date", 
-            columnList = "tenant_id, account_id, created_at DESC"),
+            columnList = "account_id, sub_ref, created_at DESC"),
         @Index(name = "idx_ledger_entries_tenant_transaction_id", 
-            columnList = "tenant_id, transaction_id")
+            columnList = "transaction_id, sub_ref")
     }
 )
 @Check(name = "ck_entry_one_side",
@@ -54,6 +54,8 @@ public class LedgerEntry {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "account_id", nullable = false, updatable = false)
     private Account account;
+
+    private UUID subRef;
 
     @Min(0)
     @Column(nullable = false, updatable = false)

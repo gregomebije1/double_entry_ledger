@@ -80,7 +80,7 @@ class LedgerControllerTest {
         mockMvc.perform(post("/api/v1/ledgers/accounts").header("Authorization", "Basic abc")
                         .contentType(MediaType.APPLICATION_JSON).content(ACCOUNT_JSON))
                 .andExpect(status().isUnauthorized());
-        verifyNoInteractions(ledgerService);
+        verifyNoInteractions(ledgerService); //asserts that the controller never called any method on LedgerService.
     }
 
     @Test @DisplayName("POST /ledgers/accounts -> Bearer -> 201")

@@ -62,7 +62,9 @@ class LedgerServiceTest {
         String result = ledgerService.createAccount(new CreateAccountRequest("1001", "Cash", "asset", "USD"));
 
         assertEquals(id.toString(), result);
-        verify(accountRepository).save(any(Account.class));
+
+        //verify(accountRepository) means check the recorded calls on this mock.”
+        verify(accountRepository).save(any(Account.class)); //the code must have called save once, passing an Account
     }
 
     @Test @DisplayName("createAccount -> unknown type -> IllegalArgumentException, nothing saved")
