@@ -116,9 +116,10 @@ curl -X POST "http://localhost:8080/api/v1/onboarding/tenant" \
 -d '{
 "tenantId": "tenant-1",
 "tenantName": "Mangital ltd",
-"email": "johndoe@mangital.com",
+"email": "johndoe@mangital.com"
 }'
 ```
+
 
 ### Login tenant-1
 ```
