@@ -28,7 +28,10 @@ public final class Models {
     
     public record CreateAccountRequest (  String accountNumber,  String name,  String type,  String currency ) {}
     public record CreateTransactionRequest ( String description,  String idempotencyKey,  List<LedgerLine> lines ) {}
-    public record LedgerLine(UUID accountId, LedgerLineType ledgerLineType, long debit, long credit) {}
 
+    // A line may carry a sub_ref: the customer wallet Id or merchant id
+    // That gives per-customer balances inside one account (a sub-ledger) 
+    // without creating an account per customer.
+    public record LedgerLine(UUID accountId, String subRef, LedgerLineType ledgerLineType, long debit, long credit) {}
 
-    }
+}

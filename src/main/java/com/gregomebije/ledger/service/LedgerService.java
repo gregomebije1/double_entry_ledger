@@ -11,6 +11,8 @@ import com.gregomebije.ledger.repository.AccountRepository;
 import com.gregomebije.ledger.repository.LedgerTransactionRepository; 
 import com.gregomebije.ledger.repository.TenantRepository;
 
+import java.util.UUID;
+
 @Service
 public class LedgerService {
 
@@ -72,6 +74,7 @@ public class LedgerService {
             LedgerEntry entry = LedgerEntry.builder()
                     .tenant(tenant) // Set explicitly
                     .account(account)
+                    .subRef(UUID.fromString(line.subRef()))
                     .debit(line.debit())
                     .credit(line.credit())
                     .build();

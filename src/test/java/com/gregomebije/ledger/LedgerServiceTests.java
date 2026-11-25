@@ -77,7 +77,7 @@ class LedgerServiceTest {
 
     @Test @DisplayName("postTransaction -> validator rejects -> nothing persisted (invariant 1)")
     void postTransaction_validatorRejects() {
-        var line = new LedgerLine(UUID.randomUUID(), LedgerLineType.DEBIT, 100, 0);
+        var line = new LedgerLine(UUID.randomUUID(), "", LedgerLineType.DEBIT, 100, 0);
         var dto = new CreateTransactionRequest("d", "k", List.of(line));
         doThrow(new UnbalancedLedgerException("unbalanced")).when(validator).validate(dto.lines());
 
@@ -98,7 +98,7 @@ class LedgerServiceTest {
     @Test @DisplayName("postTransaction -> account of another tenant -> IllegalArgumentException (invariant 6)")
     void postTransaction_foreignAccount() {
         UUID foreign = UUID.randomUUID();
-        var dto = new CreateTransactionRequest("d", "k", List.of(new LedgerLine(foreign, LedgerLineType.DEBIT, 100, 0)));
+        var dto = new CreateTransactionRequest("d", "k", List.of(new LedgerLine(foreign, "", LedgerLineType.DEBIT, 100, 0)));
         when(tenantRepository.findById(TENANT)).thenReturn(Optional.of(tenant));
         when(transactionRepository.existsByTenantIdAndCorrelationId(TENANT, "k")).thenReturn(false);
         when(accountRepository.findByTenantIdAndId(TENANT, foreign)).thenReturn(Optional.empty());
@@ -111,7 +111,9 @@ class LedgerServiceTest {
     void postTransaction_success() {
         UUID a = UUID.randomUUID(), b = UUID.randomUUID(), txId = UUID.randomUUID();
         var dto = new CreateTransactionRequest("Fund", "k",
-                List.of(new LedgerLine(a, LedgerLineType.DEBIT, 100, 0), new LedgerLine(b, LedgerLineType.CREDIT, 0, 100)));
+                List.of(
+                new LedgerLine(a, "", LedgerLineType.DEBIT, 100, 0), 
+                new LedgerLine(b, "", LedgerLineType.CREDIT, 0, 100)));
         when(tenantRepository.findById(TENANT)).thenReturn(Optional.of(tenant));
         when(transactionRepository.existsByTenantIdAndCorrelationId(TENANT, "k")).thenReturn(false);
         when(accountRepository.findByTenantIdAndId(TENANT, a)).thenReturn(Optional.of(Account.builder().id(a).build()));
