@@ -39,7 +39,7 @@ public class LedgerController {
     }
 
     // --- Authenticated routing ---
-    @PostMapping("/ledgers/accounts")
+    @PostMapping("/ledger/accounts")
     public ResponseEntity<String> createAccount(
             @RequestHeader(value = "Authorization", required = false) String authorization,
             @RequestBody CreateAccountRequest request
@@ -51,16 +51,16 @@ public class LedgerController {
         return ResponseEntity.status(HttpStatus.CREATED).body("Account created: " + accountId);
     }
 
-    @PostMapping("/ledgers/transactions")
-    public ResponseEntity<String> postTransaction(
+    @PostMapping("/ledger/entries")
+    public ResponseEntity<String> postLedger(
             @RequestHeader(value = "Authorization", required = false) String authorization,
-            @RequestBody CreateTransactionRequest request
+            @RequestBody CreateLedgerRequest request
     ) {
         if (authorization == null || !authorization.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        String txId = ledgerService.postTransaction(request);
+        String txId = ledgerService.postLedger(request);
         /*
         -- [Ledger DB]  (:'x' = value bound from the request body)
         BEGIN;

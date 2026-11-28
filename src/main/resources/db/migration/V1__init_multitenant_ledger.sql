@@ -55,7 +55,7 @@ CREATE TABLE users_tenants (
 CREATE TABLE accounts (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     tenant_id VARCHAR(64) NOT NULL REFERENCES tenants(id) ON DELETE RESTRICT,
-    account_number VARCHAR(64) NOT NULL,
+    account_code VARCHAR(64) NOT NULL,
     name VARCHAR(255) NOT NULL,
     type account_type NOT NULL,
     currency VARCHAR(3) NOT NULL, -- ISO 4217 Currency Code (e.g., 'GBP')
@@ -63,21 +63,21 @@ CREATE TABLE accounts (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT uq_accounts_tenant_number UNIQUE (tenant_id, account_number)
+    CONSTRAINT uq_accounts_tenant_code UNIQUE (tenant_id, account_code)
 );
 
 -- Ledger Transactions Table - The immutable header block
 CREATE TABLE ledger_transactions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     tenant_id VARCHAR(64) NOT NULL REFERENCES tenants(id) ON DELETE RESTRICT,
-    description VARCHAR(512) NOT NULL,
+    memo VARCHAR(512) NOT NULL,
     posted_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     -- IDEMPOTENCY GUARD: Prevents duplicate processing from creating multiple entries
-    correlation_id VARCHAR(255) NOT NULL,
+    idempotency_key VARCHAR(255) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT uq_transactions_tenant_correlation UNIQUE (tenant_id, correlation_id)
+    CONSTRAINT uq_transactions_tenant_idempotency UNIQUE (tenant_id, idempotency_key)
 );
 
 -- Ledger Entries Table:  The transactional lines (Splits)
@@ -249,7 +249,7 @@ CREATE UNIQUE INDEX idx_mv_balances_tenant_account ON mv_account_balances (tenan
 CREATE MATERIALIZED VIEW mv_ledger_entries AS
 SELECT
     t.tenant_id, 
-    t.correlation_id,
+    t.idempotency_key,
     a.name AS account, 
     a.currency, 
     e.debit, 
@@ -257,9 +257,9 @@ SELECT
 FROM ledger_entries e
 JOIN ledger_transactions t ON t.id = e.transaction_id
 JOIN accounts a            ON a.id = e.account_id
-ORDER BY t.created_at, t.correlation_id, e.debit DESC;
+ORDER BY t.created_at, t.idempotency_key, e.debit DESC;
 
-CREATE UNIQUE INDEX idx_mv_ledger_entries  ON mv_ledger_entries  (tenant_id, correlation_id, account);
+CREATE UNIQUE INDEX idx_mv_ledger_entries  ON mv_ledger_entries  (tenant_id, idempotency_key, account);
 
 REFRESH MATERIALIZED VIEW CONCURRENTLY mv_ledger_entries ;
 SELECT * FROM mv_ledger_entries;

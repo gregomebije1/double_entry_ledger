@@ -16,8 +16,8 @@ import com.gregomebije.ledger.dto.Models.AccountType;
 @Table(
     name = "accounts",
     uniqueConstraints = @UniqueConstraint(
-        name = "uq_accounts_tenant_number", 
-        columnNames = {"tenant_id", "account_number"})
+        name = "uq_accounts_tenant_code", 
+        columnNames = {"tenant_id", "account_code"})
 )
 @Getter
 @Setter
@@ -35,8 +35,8 @@ public class Account {
     @JoinColumn(name = "tenant_id", nullable = false, updatable = false)
     private Tenant tenant;
 
-    @Column(name = "account_number", nullable = false, length = 64, updatable = false)
-    private String accountNumber;
+    @Column(name = "account_code", nullable = false, length = 64, updatable = false)
+    private String accountCode;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -61,10 +61,10 @@ public class Account {
     @Column(name = "updated_at", nullable = false, updatable = false)
     private OffsetDateTime updatedAt;
 
-    public Account(Tenant tenant, String accountNumber, String name,
+    public Account(Tenant tenant, String accountCode, String name,
                    AccountType type, String currency) {
         this.tenant = tenant;
-        this.accountNumber = accountNumber;
+        this.accountCode = accountCode;
         this.name = name;
         this.type = type;
         this.currency = currency;

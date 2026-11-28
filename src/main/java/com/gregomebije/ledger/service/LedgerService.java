@@ -38,7 +38,7 @@ public class LedgerService {
         Tenant tenant = tenantRepository.findById(currentTenant).get();
         Account account = Account.builder()
                 .tenant(tenant) // Set explicitly
-                .accountNumber(dto.accountNumber())
+                .accountCode(dto.accountCode())
                 .name(dto.name())
                 .type(AccountType.valueOf(dto.type().toUpperCase()))
                 .currency(dto.currency())
@@ -46,30 +46,30 @@ public class LedgerService {
         Account savedAccount = accountRepository.save(account);
 
         //Todo: Handle if it already exists and idempotency
-        return savedAccount.getId().toString();
+        return savedAccount.getAccountCode().toString();
     }
 
     @Transactional
-    public String postTransaction(CreateTransactionRequest dto) {
+    public String postLedger(CreateLedgerRequest dto) {
         validator.validate(dto.lines());
         String currentTenant = TenantContext.getTenantId(); // Gather explicitly from request context container
         Tenant tenant = tenantRepository.findById(currentTenant).get();
        
 
-        if (transactionRepository.existsByTenantIdAndCorrelationId(currentTenant, dto.idempotencyKey())) {
-            throw new IllegalStateException("Idempotency breach: Correlation ID already filed under this tenant context.");
+        if (transactionRepository.existsByTenantIdAndIdempotencyKey(currentTenant, dto.idempotencyKey())) {
+            throw new IllegalStateException("Idempotency breach: Idempotency Key already filed under this tenant context.");
         }
 
         LedgerTransaction tx = LedgerTransaction.builder()
-                .tenant(tenant) // Set explicitly
-                .description(dto.description())
-                .correlationId(dto.idempotencyKey())
+                .tenant(tenant) 
+                .memo(dto.memo())
+                .idempotencyKey(dto.idempotencyKey())
                 .build();
 
         for (LedgerLine line : dto.lines()) {
             // Find account using explicit tenant isolation query
-            Account account = accountRepository.findByTenantIdAndId(currentTenant, line.accountId())
-                    .orElseThrow(() -> new IllegalArgumentException("Target accounting node does not exist or belongs to another tenant."));
+            Account account = accountRepository.findByTenantIdAndAccountCode(currentTenant, line.accountCode())
+                    .orElseThrow(() -> new IllegalArgumentException("Account not found."));
 
             LedgerEntry entry = LedgerEntry.builder()
                     .tenant(tenant) // Set explicitly
@@ -89,7 +89,7 @@ public class LedgerService {
     }
 
     @Transactional
-    public String postTransactionAndFail(String tenantId, CreateTransactionRequest request) {
+    public String postLedgerAndFail(String tenantId, CreateLedgerRequest request) {
         validator.validate(request.lines());
         throw new RuntimeException("Forced rollback for test");
     }

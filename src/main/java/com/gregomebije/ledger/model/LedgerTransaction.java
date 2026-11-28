@@ -19,8 +19,8 @@ import java.util.UUID;
 @Table(
     name = "ledger_transactions",
     uniqueConstraints = @UniqueConstraint(
-        name = "uq_transactions_tenant_correlation", 
-        columnNames = {"tenant_id", "correlation_id"})
+        name = "uq_transactions_tenant_idempotency", 
+        columnNames = {"tenant_id", "idempotency_key"})
 )
 @Getter
 @Setter
@@ -41,15 +41,15 @@ public class LedgerTransaction {
     private Tenant tenant;
 
     @Column(nullable = false, length = 512,  updatable = false)
-    private String description;
+    private String memo;
 
     @Column(name = "posted_at", nullable = false, updatable = false)
     @Builder.Default
     private OffsetDateTime postedAt = OffsetDateTime.now();
 
     /** Idempotency guard, unique per tenant. */
-    @Column(name = "correlation_id", nullable = false, updatable = false)
-    private String correlationId;
+    @Column(name = "idempotency_key", nullable = false, updatable = false)
+    private String idempotencyKey;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -60,10 +60,10 @@ public class LedgerTransaction {
     @OneToMany(mappedBy = "transaction", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LedgerEntry> entries = new ArrayList<>();
 
-    public LedgerTransaction(Tenant tenant, String correlationId, String description) {
+    public LedgerTransaction(Tenant tenant, String idempotencyKey, String memo) {
         this.tenant = tenant;
-        this.correlationId = correlationId;
-        this.description = description;
+        this.idempotencyKey = idempotencyKey;
+        this.memo = memo;
     }
     /*
     public LedgerTransaction debit(Account account, long amountMinorUnits) {

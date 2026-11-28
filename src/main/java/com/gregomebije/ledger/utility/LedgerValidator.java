@@ -24,8 +24,8 @@ public class LedgerValidator {
             throw new IllegalArgumentException("Ledger must contain at least one line");
 
         for (LedgerLine ledgerLine : ledgerLines) {
-            if (ledgerLine == null || ledgerLine.accountId() == null) {
-                throw new IllegalArgumentException("Account ID is required");
+            if (ledgerLine == null || ledgerLine.accountCode() == null) {
+                throw new IllegalArgumentException("Account code is required");
             }
             if ((ledgerLine.debit() < 0) || (ledgerLine.credit() < 0))
                 throw new IllegalArgumentException("Amount must be positive");

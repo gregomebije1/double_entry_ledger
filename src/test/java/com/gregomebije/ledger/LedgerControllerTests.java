@@ -36,11 +36,11 @@ class LedgerControllerTest {
     private static final String LOGIN_JSON = """
             {"tenantId":"tenant-1","email":"johndoe@mangital.com","password":"password"}""";
     private static final String ACCOUNT_JSON = """
-            {"accountNumber":"1001","name":"Alice wallet","type":"ASSET","currency":"USD"}""";
+            {"accountCode":"1001","name":"Alice wallet","type":"ASSET","currency":"USD"}""";
     private static final String TX_JSON = """
-            {"description":"Fund Alice","idempotencyKey":"fund-alice-1","lines":[
-              {"accountId":"d880a0fe-ce74-4877-98f9-73dbb2ffe46b","ledgerLineType":"DEBIT","debit":100000,"credit":0},
-              {"accountId":"40eb54c1-291b-4986-a51e-00bf2e99a40e","ledgerLineType":"CREDIT","debit":0,"credit":100000}]}""";
+            {"memo":"Fund Alice","idempotencyKey":"fund-alice-1","lines":[
+              {"accountCode":"1001","subRef":"","debit":100000,"credit":0},
+              {"accountCode":"1001","subRef":"","debit":0,"credit":100000}]}""";
 
     @Test @DisplayName("POST /onboarding/user -> 201")
     void registerUser_created() throws Exception {
@@ -73,54 +73,54 @@ class LedgerControllerTest {
                 .andExpect(jsonPath("$.accessToken").value("jwt.token"));
     }
 
-    @Test @DisplayName("POST /ledgers/accounts -> no / malformed Authorization -> 401")
+    @Test @DisplayName("POST /ledger/accounts -> no / malformed Authorization -> 401")
     void createAccount_unauthorized() throws Exception {
-        mockMvc.perform(post("/api/v1/ledgers/accounts").contentType(MediaType.APPLICATION_JSON).content(ACCOUNT_JSON))
+        mockMvc.perform(post("/api/v1/ledger/accounts").contentType(MediaType.APPLICATION_JSON).content(ACCOUNT_JSON))
                 .andExpect(status().isUnauthorized());
-        mockMvc.perform(post("/api/v1/ledgers/accounts").header("Authorization", "Basic abc")
+        mockMvc.perform(post("/api/v1/ledger/accounts").header("Authorization", "Basic abc")
                         .contentType(MediaType.APPLICATION_JSON).content(ACCOUNT_JSON))
                 .andExpect(status().isUnauthorized());
         verifyNoInteractions(ledgerService); //asserts that the controller never called any method on LedgerService.
     }
 
-    @Test @DisplayName("POST /ledgers/accounts -> Bearer -> 201")
+    @Test @DisplayName("POST /ledger/accounts -> Bearer -> 201")
     void createAccount_created() throws Exception {
         when(ledgerService.createAccount(any())).thenReturn("ACC-1");
-        mockMvc.perform(post("/api/v1/ledgers/accounts").header("Authorization", "Bearer x")
+        mockMvc.perform(post("/api/v1/ledger/accounts").header("Authorization", "Bearer x")
                         .contentType(MediaType.APPLICATION_JSON).content(ACCOUNT_JSON))
                 .andExpect(status().isCreated())
                 .andExpect(content().string("Account created: ACC-1"));
     }
 
-    @Test @DisplayName("POST /ledgers/transactions -> no token -> 401")
+    @Test @DisplayName("POST /ledger/entries -> no token -> 401")
     void postTx_unauthorized() throws Exception {
-        mockMvc.perform(post("/api/v1/ledgers/transactions").contentType(MediaType.APPLICATION_JSON).content(TX_JSON))
+        mockMvc.perform(post("/api/v1/ledger/entries").contentType(MediaType.APPLICATION_JSON).content(TX_JSON))
                 .andExpect(status().isUnauthorized());
         verifyNoInteractions(ledgerService);
     }
 
-    @Test @DisplayName("POST /ledgers/transactions -> Bearer -> 201")
+    @Test @DisplayName("POST /ledger/entries -> Bearer -> 201")
     void postTx_created() throws Exception {
-        when(ledgerService.postTransaction(any())).thenReturn("TX-1");
-        mockMvc.perform(post("/api/v1/ledgers/transactions").header("Authorization", "Bearer x")
+        when(ledgerService.postLedger(any())).thenReturn("TX-1");
+        mockMvc.perform(post("/api/v1/ledger/entries").header("Authorization", "Bearer x")
                         .contentType(MediaType.APPLICATION_JSON).content(TX_JSON))
                 .andExpect(status().isCreated())
                 .andExpect(content().string("Ledger entry balance block recorded successfully: TX-1"));
     }
 
-    @Test @DisplayName("POST /ledgers/transactions -> unbalanced -> 400")
+    @Test @DisplayName("POST /ledger/entries -> unbalanced -> 400")
     void postTx_unbalanced() throws Exception {
-        when(ledgerService.postTransaction(any())).thenThrow(new UnbalancedLedgerException("unbalanced"));
-        mockMvc.perform(post("/api/v1/ledgers/transactions").header("Authorization", "Bearer x")
+        when(ledgerService.postLedger(any())).thenThrow(new UnbalancedLedgerException("unbalanced"));
+        mockMvc.perform(post("/api/v1/ledger/entries").header("Authorization", "Bearer x")
                         .contentType(MediaType.APPLICATION_JSON).content(TX_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("unbalanced"));
     }
 
-    @Test @DisplayName("POST /ledgers/transactions -> idempotency breach -> 409")
+    @Test @DisplayName("POST /ledger/entries -> idempotency breach -> 409")
     void postTx_conflict() throws Exception {
-        when(ledgerService.postTransaction(any())).thenThrow(new IllegalStateException("dup"));
-        mockMvc.perform(post("/api/v1/ledgers/transactions").header("Authorization", "Bearer x")
+        when(ledgerService.postLedger(any())).thenThrow(new IllegalStateException("dup"));
+        mockMvc.perform(post("/api/v1/ledger/entries").header("Authorization", "Bearer x")
                         .contentType(MediaType.APPLICATION_JSON).content(TX_JSON))
                 .andExpect(status().isConflict());
     }

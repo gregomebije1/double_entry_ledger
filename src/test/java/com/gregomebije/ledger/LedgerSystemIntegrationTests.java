@@ -62,24 +62,24 @@ class LedgerSystemIntegrationTest {
         return "Bearer " + JsonPath.<String>read(r.getResponse().getContentAsString(), "$.accessToken");
     }
 
-    private String createAccount(String token, String number, String name, String type, String ccy) throws Exception {
-        MvcResult r = mockMvc.perform(post("/api/v1/ledgers/accounts").header("Authorization", token)
+    private String createAccount(String token, String code, String name, String type, String ccy) throws Exception {
+        MvcResult r = mockMvc.perform(post("/api/v1/ledger/accounts").header("Authorization", token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
-                    {"accountNumber":"%s","name":"%s","type":"%s","currency":"%s"}""".formatted(number, name, type, ccy)))
+                    {"accountCode":"%s","name":"%s","type":"%s","currency":"%s"}""".formatted(code, name, type, ccy)))
                 .andExpect(status().isCreated()).andReturn();
         return r.getResponse().getContentAsString().replace("Account created: ", "").trim();
     }
 
-    private static String tx(String key, String desc, String debitAcc, long debit, String creditAcc, long credit) {
+    private static String tx(String key, String memo, String debitAccCode, long debit, String creditAccCode, long credit) {
         return """
-            {"description":"%s","idempotencyKey":"%s","lines":[
-              {"accountId":"%s","ledgerLineType":"DEBIT","debit":%d,"credit":0},
-              {"accountId":"%s","ledgerLineType":"CREDIT","debit":0,"credit":%d}]}""".formatted(desc, key, debitAcc, debit, creditAcc, credit);
+            {"memo":"%s","idempotencyKey":"%s","lines":[
+              {"accountCode":"%s","subRef":"","debit":%d,"credit":0},
+              {"accountCode":"%s","subRef":"","debit":0,"credit":%d}]}""".formatted(memo, key, debitAccCode, debit, creditAccCode, credit);
     }
 
     private ResultActions postTx(String token, String body) throws Exception {
-        return mockMvc.perform(post("/api/v1/ledgers/transactions").header("Authorization", token)
+        return mockMvc.perform(post("/api/v1/ledger/entries").header("Authorization", token)
                 .contentType(MediaType.APPLICATION_JSON).content(body));
     }
 
@@ -95,9 +95,9 @@ class LedgerSystemIntegrationTest {
 
     @Test @Order(2) @DisplayName("Auth: missing bearer token -> 401")
     void unauthenticated() throws Exception {
-        mockMvc.perform(post("/api/v1/ledgers/accounts").contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/api/v1/ledger/accounts").contentType(MediaType.APPLICATION_JSON)
                 .content("""
-                    {"accountNumber":"9","name":"x","type":"ASSET","currency":"USD"}"""))
+                    {"accountCode":"9","name":"x","type":"ASSET","currency":"USD"}"""))
                 .andExpect(status().isUnauthorized());
     }
 
